@@ -758,6 +758,11 @@ function sfxBump() {
 const buildingData = {};
 function getBldg(gx, gy) {
   const k = gx + ',' + gy + ',' + currentCity;
+  // Evict cache when it gets too large to prevent memory growth
+  if (Object.keys(buildingData).length > 300) {
+    const keys = Object.keys(buildingData);
+    for (let i = 0; i < 100; i++) delete buildingData[keys[i]];
+  }
   if (!buildingData[k]) {
     const theme = getTheme();
     const s = Math.sin(gx * 127.1 + gy * 311.7) * 43758.5453;
@@ -845,6 +850,12 @@ addEventListener('touchmove', e => {
 }, { passive: false });
 
 addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === touchId) { touchDir.x = 0; touchDir.y = 0; touchId = null; }
+    if (t.identifier === sirenTouchId) { keys['Space'] = false; sirenTouchId = null; }
+  }
+});
+addEventListener('touchcancel', e => {
   for (const t of e.changedTouches) {
     if (t.identifier === touchId) { touchDir.x = 0; touchDir.y = 0; touchId = null; }
     if (t.identifier === sirenTouchId) { keys['Space'] = false; sirenTouchId = null; }
@@ -1183,6 +1194,7 @@ function update(dt) {
 
   // Tire trails when moving fast
   if (P.speed > 120 && P.moving) {
+    if (tireTrails.length > 400) tireTrails.splice(0, tireTrails.length - 400);
     const perp = P.angle + PI / 2;
     tireTrails.push(
       { x: P.x + Math.cos(perp) * 8, y: P.y + Math.sin(perp) * 8, life: 1.5 },
@@ -1271,7 +1283,7 @@ function update(dt) {
   }
 
   // --- Maintain civs ---
-  const maxC = 14 + wave * 2;
+  const maxC = Math.min(14 + wave * 2, 40);
   while (civs.length < maxC) civs.push(makeCiv());
 
   // --- Update drunks ---
@@ -1317,9 +1329,17 @@ function update(dt) {
           const turns = d.isHoriz ? [PI / 2, -PI / 2] : [0, PI];
           d.baseDir = turns[Math.floor(Math.random() * 2)];
           d.isHoriz = !d.isHoriz;
-          // Snap to intersection road center
+          // Snap to intersection road center and clamp to road
           d.x = curCX * CELL + ROAD_W / 2 + (Math.random() < 0.5 ? 14 : -14);
           d.y = curCY * CELL + ROAD_W / 2 + (Math.random() < 0.5 ? 14 : -14);
+          d.laneCenter = d.isHoriz ? d.y : d.x;
+          if (entityOnBuilding(d)) { d.isHoriz = !d.isHoriz; d.baseDir = d.baseDir + PI; }
+          d.laneCenter = d.isHoriz ? d.y : d.x;
+          // Verify not on building after snap
+          if (entityOnBuilding(d)) {
+            d.x = curCX * CELL + ROAD_W / 2;
+            d.y = curCY * CELL + ROAD_W / 2;
+          }
         }
       }
 
@@ -2246,11 +2266,13 @@ function drawCar(x, y, angle, color, type, neonColor, driverSkin, driverShirt) {
 
 // Color helpers for metallic gradients
 function lightenColor(hex, amt) {
+  hex = hex.slice(0, 7);
   let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
   r = Math.min(255, r + amt); g = Math.min(255, g + amt); b = Math.min(255, b + amt);
   return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 function darkenColor(hex, amt) {
+  hex = hex.slice(0, 7);
   let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
   r = Math.max(0, r - amt); g = Math.max(0, g - amt); b = Math.max(0, b - amt);
   return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
