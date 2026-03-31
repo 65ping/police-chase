@@ -4,14 +4,6 @@ I built this game for my 👶 It's a neon-lit police chase game that runs right 
 
 **[Play Now](https://65ping.github.io/police-chase/)**
 
-## How to Play
-
-You're the police. Chase down reckless drivers through a glowing city at night. Hit **SPACE** to blast your siren, or just bump them to force a stop. Don't let them crash into buildings or traffic!
-
-**Arrow Keys / WASD** to drive. **SPACE** for siren. **1-5** to pick difficulty. **Enter** to start.
-
-Works on phones too. Left side of screen to steer, right side to siren.
-
 ## What's In It
 
 - 5 difficulty levels from Rookie (easy, 7 lives) to Chief (brutal, 3 lives)
