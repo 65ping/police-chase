@@ -1,6 +1,6 @@
 # Police Chase
 
-I built this game for my son. It's a neon-lit police chase game that runs right in the browser. No install, no downloads, just click and play.
+I built this game for my 👶 It's a neon-lit police chase game that runs right in the browser. No install, no downloads, just click and play.
 
 **[Play Now](https://65ping.github.io/police-chase/)**
 
